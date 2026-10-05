@@ -4,7 +4,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 
 # ⚠️ СЮДА ВСТАВЬТЕ ТОКЕН ИЗ @BotFather (внутри кавычек)
-BOT_TOKEN = "ВАШ_ТОКЕН_БОТА"
+BOT_TOKEN = "8957601323:AAHa1SJpfUt_h16NxQd36yOY2gvRrDEyzPU"
 
 # Ваша готовая ссылка на игру
 WEB_APP_URL = "https://github.io" 
