@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gift Battle Simulator</title>
+    <!-- Подключаем стили Tailwind для красивого UI -->
+    <script src="https://jsdelivr.net"></script>
+    <!-- Подключаем Telegram Web Apps SDK -->
+    <script src="https://telegram.org"></script>
+    <style>
+        body { background-color: #121212; color: #ffffff; font-family: sans-serif; }
+        .gift-card { background: linear-gradient(145deg, #1e1e1e, #252525); }
+    </style>
+</head>
+<body class="p-4 flex flex-col items-center min-h-screen">
+
+    <!-- Шапка профиля -->
+    <div class="w-full max-w-md flex justify-between items-center mb-6 bg-[#1a1a1a] p-3 rounded-xl border border-neutral-800">
+        <div>
+            <h1 id="username" class="font-bold text-lg text-yellow-400">Игрок</h1>
+            <p class="text-xs text-neutral-400">Симулятор подарков</p>
+        </div>
+        <div class="bg-[#2a2a2a] px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 border border-neutral-700">
+            🪙 <span id="balance">1000</span>
+        </div>
+    </div>
+
+    <!-- Кнопка открыть кейс -->
+    <div class="w-full max-w-md mb-8">
+        <button onclick="openCase()" class="w-full bg-yellow-500 hover:bg-yellow-400 active:scale-95 transition-all text-black font-bold py-4 rounded-xl text-center shadow-lg shadow-yellow-500/10">
+            🎁 Открыть кейс (Цена: 200 🪙)
+        </button>
+    </div>
+
+    <!-- Секция инвентаря -->
+    <div class="w-full max-w-md">
+        <h2 class="text-sm font-semibold text-neutral-400 uppercase tracking-wider mb-3">Мой инвентарь</h2>
+        <div id="inventory" class="grid grid-cols-2 gap-3">
+            <!-- Сюда скриптом будут добавляться подарки -->
+            <p id="empty-text" class="text-neutral-500 text-sm col-span-2 text-center py-4">У вас пока нет подарков. Откройте свой первый кейс!</p>
+        </div>
+    </div>
+
+    <script>
+        // Инициализируем Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Расширяем на весь экран
+
+        // Подтягиваем имя пользователя из Telegram
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            document.getElementById('username').innerText = tg.initDataUnsafe.user.first_name;
+        }
+
+        // Локальное состояние (в реальном боте данные будут идти с сервера)
+        let balance = 1000;
+        let inventory = [];
+
+        // База доступных подарков в игре
+        const giftPool = [
+            { name: "Kissed Frog", emoji: "🐸", rarity: "Common", color: "border-green-500" },
+            { name: "Sharp Tongue", emoji: "👅", rarity: "Rare", color: "border-blue-500" },
+            { name: "Golden Crown", emoji: "👑", rarity: "Epic", color: "border-purple-500" },
+            { name: "Cyber Dragon", emoji: "🐉", rarity: "Legendary", color: "border-yellow-500" }
+        ];
+
+        function openCase() {
+            if (balance < 200) {
+                tg.showAlert("Недостаточно монет! Пригласите друзей или подождите ежедневный бонус.");
+                return;
+            }
+
+            balance -= 200;
+            document.getElementById('balance').innerText = balance;
+
+            // Расчет шансов выпадения (рандом)
+            const rand = Math.random();
+            let reward;
+            if (rand < 0.50) reward = giftPool[0];      // 50% Common
+            else if (rand < 0.80) reward = giftPool[1]; // 30% Rare
+            else if (rand < 0.95) reward = giftPool[2]; // 15% Epic
+            else reward = giftPool[3];                  // 5% Legendary
+
+            inventory.push(reward);
+            updateInventoryUI();
+            
+            // Легкая вибрация телефона при выигрыше
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
+            
+            tg.showAlert(`🎉 Вы выбили: ${reward.name} (${reward.rarity})!`);
+        }
+
+        function updateInventoryUI() {
+            const container = document.getElementById('inventory');
+            const emptyText = document.getElementById('empty-text');
+            
+            if (inventory.length > 0) emptyText.style.display = 'none';
+
+            container.innerHTML = '';
+            inventory.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `gift-card border-b-4 ${item.color} p-4 rounded-xl flex flex-col items-center justify-center relative overflow-hidden`;
+                card.innerHTML = `
+                    <div class="text-4xl mb-2">${item.emoji}</div>
+                    <div class="font-medium text-sm text-center">${item.name}</div>
+                    <div class="text-[10px] text-neutral-400 mt-1 uppercase">${item.rarity}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
